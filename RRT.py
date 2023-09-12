@@ -33,7 +33,6 @@ class RRT:
     def create_fake_RRT(self): 
 
         G = {
-
             (2.0, 2.0): [(3.0, 3.0), (3.5, 2.5), (4.0, 2.0)],  # Start node connected to its child nodes
             (3.0, 3.0): [(2.0, 2.0), (4.0, 3.0), (3.5, 3.5)],  # Node connected to its parent and child nodes
             (3.5, 2.5): [(2.0, 2.0), (4.0, 2.5), (3.0, 3.0)],  # Node connected to its parent and child nodes
@@ -59,14 +58,15 @@ class RRT:
     #add a random new vertex. go to the nearest vertex, add a distance delta TOWARDS q_rand
     def new_configuration(self,G,q_near,q_rand,delta): 
 
-        q_near = np.array(q_near) 
+        q_near = np.array(q_near) #src
 
-        q_rand = np.array(q_rand)
+        q_rand = np.array(q_rand) #dest
 
-        v = np.subtract(q_near,q_rand)
-        # unit_v = v / np.sqrt(np.sum(v**2))
+        v = q_rand-q_near
 
-        q_new = ( q_rand[0] + (delta * v[0]) , q_rand[1] + (delta * v[1]))
+        dir = v / np.sqrt(np.sum(v**2))
+
+        q_new = ( q_near[0] + (delta * dir[0]) , q_near[1] + (delta * dir[1]))
 
         return q_new 
 
