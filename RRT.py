@@ -9,10 +9,8 @@ class RRT:
         self.K=K 
         self.delta=delta
         self.D=D
-
         self.G = self.create_RRT(self.q_init,K,delta,D)
 
-        # self.G = self.create_fake_RRT()
 
     def create_RRT(self,q_init,K,delta,D): 
         G = {} #key: position, value: edges. extend to the edges for nodes it is connected to
@@ -29,24 +27,6 @@ class RRT:
                 G[q_near].append(q_new)
 
         return G
-    
-    def create_fake_RRT(self): 
-
-        G = {
-            (2.0, 2.0): [(3.0, 3.0), (3.5, 2.5), (4.0, 2.0)],  # Start node connected to its child nodes
-            (3.0, 3.0): [(2.0, 2.0), (4.0, 3.0), (3.5, 3.5)],  # Node connected to its parent and child nodes
-            (3.5, 2.5): [(2.0, 2.0), (4.0, 2.5), (3.0, 3.0)],  # Node connected to its parent and child nodes
-            (4.0, 2.0): [(2.0, 2.0), (3.5, 2.5), (4.0, 3.0)],  # Node connected to its parent and child nodes
-            (4.0, 3.0): [(3.0, 3.0), (3.5, 2.5), (4.5, 2.5)],  # Node connected to its parent and child nodes
-            (3.5, 3.5): [(3.0, 3.0), (4.0, 3.0), (4.5, 3.5)],  # Node connected to its parent and child nodes
-            (4.0, 2.5): [(3.5, 2.5), (4.0, 2.0), (4.5, 3.0)],  # Node connected to its parent and child nodes
-            (4.5, 2.5): [(4.0, 2.0), (4.0, 3.0), (5.0, 2.0)],  # Node connected to its parent and child nodes
-            (4.5, 3.5): [(3.5, 3.5), (4.0, 3.0), (5.0, 3.0)],  # Node connected to its parent and child nodes
-            (5.0, 2.0): [(4.5, 2.5), (5.0, 2.5), (5.5, 2.0)],  # Node connected to its parent and child nodes
-            (5.0, 3.0): [(4.5, 3.5), (5.0, 2.5), (5.5, 3.0)],  # Node connected to its parent and child nodes    
-        }
-        return G
-
         
 
     #compute eucliean dist bw p1, p2
@@ -59,13 +39,10 @@ class RRT:
     def new_configuration(self,G,q_near,q_rand,delta): 
 
         q_near = np.array(q_near) #src
-
         q_rand = np.array(q_rand) #dest
 
         v = q_rand-q_near
-
         dir = v / np.sqrt(np.sum(v**2))
-
         q_new = ( q_near[0] + (delta * dir[0]) , q_near[1] + (delta * dir[1]))
 
         return q_new 
@@ -88,6 +65,15 @@ class RRT:
     #generate random point in domain D
     def generate_random_point(self,D): 
         return (np.random.uniform(low=0,high=D[0]),
-                
                 np.random.uniform(low=0,high=D[1]))
+    
+    
+    def generate_obstacles(self): 
+        pass
+
+    
+    def check_obstacle_collision(self, q_near, q_new): 
+        pass
+
+
 
