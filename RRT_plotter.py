@@ -9,7 +9,8 @@ class RRT_plotter:
     def __init__(self,RRT): 
         self.RRT = RRT 
         self.plot_RRT()
-        fig, ax = plt.subplots()
+        self.fig, self.ax = plt.subplots()
+
         # ax.set_xlim(0,100)
         # ax.set_ylim(0,100)
 
@@ -17,7 +18,7 @@ class RRT_plotter:
     def plot_vertices(self): 
 
         for v in self.RRT.G: 
-            print(v)
+            # print(v)
             plt.plot(v[0],v[1],'bo')
             
     
@@ -26,35 +27,59 @@ class RRT_plotter:
         #each vertex with list of points it is connected to 
         #v connects to v'
 
-
         x_values = []
         y_values = [] 
+        segs = [] 
 
-        for v in self.RRT.G.items(): 
-            for v_prime in v: 
-                if len(v_prime)>0: 
-                   
-                   x_values.append(v[0])
-                   x_values.append(v_prime[0])
+        line_segments = LineCollection(segs, linewidths=(.5),
+                               colors='red', linestyle='solid')
+        
 
-                   y_values.append(v[1])
-                   y_values.append(v_prime[1])
+        for v in self.RRT.G.keys():
+    
+            v_primes = self.RRT.G[v] 
 
-        plt.plot(x_values,y_values,'o') 
+            if len(v_primes) > 0: 
+                for vp in v_primes: 
+                    segs.append(np.array([v,vp]))
+        
+
+           
+        self.ax.add_collection(line_segments)
+        
+
         
     def plot_RRT(self): 
         self.plot_vertices() 
         self.plot_edges()
-        plt.xlabel("X") 
-        plt.ylabel("Y") 
-        plt.show() 
+        self.ax.xlabel("X") 
+        self.ax.ylabel("Y") 
+        self.ax.show() 
 
 def main(): 
 
-    rrt = RRT(q_init=(0,0),K=50,delta=1,D=(100,100))
-    # print(rrt.G)
-    plotter = RRT_plotter(rrt) 
-    plotter.plot_vertices
+    rrt = RRT(q_init=(50,50),K=50,delta=.001,D=(100,100))
+
+    fig,ax = plt.subplots()
+    for v in rrt.G: 
+        plt.plot(v[0],v[1],'bo')
+
+    segs = [] 
+    for v in rrt.G.keys():
+
+        v_primes = rrt.G[v] 
+
+        if len(v_primes) > 0: 
+            for vp in v_primes: 
+                segs.append(np.array([v,vp]))
+    
+    line_segments = LineCollection(segs, linewidths=(1),
+                            colors='black', linestyle='solid')
+    
+    ax.add_collection(line_segments)
+
+
+    plt.show()
 
 main() 
 
