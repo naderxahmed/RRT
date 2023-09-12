@@ -1,30 +1,33 @@
-from venv import create
 import matplotlib.pyplot as plt 
 import numpy as np 
+from numpy.linalg import norm
 
 class RRT: 
 
     def __init__(self,q_init,K,delta,D): 
+
         self.q_init=q_init 
         self.K=K 
         self.delta=delta
         self.D=D
-        self.G = self.create_RRT(self.q_init,K,delta,D)
-
-
-    def create_RRT(self,q_init,K,delta,D): 
+        self.circle_obstacles = []
+        self.generate_circle_obstacles(5)
+        self.G = self.create_RRT(self.q_init,K,delta)
+        
+    def create_RRT(self,q_init,K,delta): 
         G = {} #key: position, value: edges. extend to the edges for nodes it is connected to
         G[q_init]=[]
 
         for i in range(K): 
-            q_rand = self.generate_random_point(D) 
+            q_rand = self.generate_random_point() 
             q_near = self.nearest_vertex(q_rand,G)
             q_new = self.new_configuration(G,q_near,q_rand,delta)
 
             G[q_new]=[] 
-            
-            if q_new not in G[q_near]: 
+            print(self.check_circle_collision(q_near,q_new))
+            if q_new not in G[q_near] and self.check_circle_collision(q_near,q_new):
                 G[q_near].append(q_new)
+                
 
         return G
         
@@ -63,17 +66,54 @@ class RRT:
 
 
     #generate random point in domain D
-    def generate_random_point(self,D): 
-        return (np.random.uniform(low=0,high=D[0]),
-                np.random.uniform(low=0,high=D[1]))
+    def generate_random_point(self): 
+        return (np.random.uniform(low=0,high=self.D[0]),
+                np.random.uniform(low=0,high=self.D[1]))
     
     
-    def generate_obstacles(self): 
-        pass
+    #generate n circular obstacles
+    def generate_circle_obstacles(self,n): 
+        for _ in range(n):
+            center = self.generate_random_point()
+            r = np.random.uniform(low=2,high=self.D[0]/10)
+            self.circle_obstacles.append([center[0],center[1],r])
 
+    def check_circle_collision(self, q_near, q_new): 
+        q_near = np.array(q_near)
+        q_new = np.array(q_new) 
+      
+        line = q_new-q_near 
+        distances = [] 
+
+        for crc in self.circle_obstacles: 
+            d = np.abs(norm(np.cross(q_new-q_near, q_near-crc[2])))/norm(q_new-q_near)
+            distances.append(d) 
+
+
+            if d < crc[2]: 
+                print(d,crc[2])
+                return False 
+            
+            qnx, qny = q_new
+            qnrx, qnry = q_near
+            
+            
+            
+        return True 
+
+        
+
+
+        
+
+
+         
     
-    def check_obstacle_collision(self, q_near, q_new): 
-        pass
+
+
+
+
+        
 
 
 
