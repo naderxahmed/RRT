@@ -4,12 +4,13 @@ from numpy.linalg import norm
 
 class RRT: 
 
-    def __init__(self, q_init, K, delta, D): 
+    def __init__(self, q_init, K, delta, D, num_circle_obstacles): 
         self.K = K 
         self.delta = delta
         self.D = D
         self.circle_obstacles = []
-        self.generate_circle_obstacles(10)
+
+        self.generate_circle_obstacles(num_circle_obstacles)
 
         if self.is_inside_obstacle(q_init):
             print("Initial point is inside an obstacle, regenerating...")

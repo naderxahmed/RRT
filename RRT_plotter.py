@@ -21,8 +21,6 @@ class Plotter:
         ybottom, ytop = self.ax.get_ylim()
         self.ax.set_aspect(abs((xright-xleft)/(ybottom-ytop))*ratio)
 
-        plt.show()
-
     def plot_vertices(self): 
         for v in self.rrt.G: 
             plt.plot(v[0], v[1], 'bo', markersize=1)  
@@ -43,15 +41,10 @@ class Plotter:
         for crc in self.rrt.circle_obstacles:
             circle = plt.Circle((crc[0],crc[1]),crc[2], color='black')
             self.ax.add_patch(circle) 
-
-        
-def main(): 
-
-    rrt = RRT(q_init=(10,10),K=500,delta=1,D=(50,50))
-    plotter = Plotter(rrt)
-
-main() 
-
     
+    def show(self): 
+        plt.show()
+
+
 
 
