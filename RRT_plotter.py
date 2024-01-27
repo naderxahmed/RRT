@@ -25,7 +25,7 @@ class Plotter:
 
     def plot_vertices(self): 
         for v in self.rrt.G: 
-            plt.plot(v[0], v[1], 'b.', markersize=5)  
+            plt.plot(v[0], v[1], 'bo', markersize=1)  
     
     def plot_edges(self):
         segs = [] 
@@ -41,7 +41,7 @@ class Plotter:
 
     def plot_circle_obstacles(self): 
         for crc in self.rrt.circle_obstacles:
-            circle = plt.Circle((crc[0],crc[1]),crc[2])
+            circle = plt.Circle((crc[0],crc[1]),crc[2], color='black')
             self.ax.add_patch(circle) 
 
         

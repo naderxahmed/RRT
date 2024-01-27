@@ -4,14 +4,36 @@ from numpy.linalg import norm
 
 class RRT: 
 
-    def __init__(self,q_init,K,delta,D): 
-        self.q_init=q_init 
-        self.K=K 
-        self.delta=delta
-        self.D=D
+    def __init__(self, q_init, K, delta, D): 
+        self.K = K 
+        self.delta = delta
+        self.D = D
         self.circle_obstacles = []
         self.generate_circle_obstacles(10)
-        self.G = self.create_RRT(self.q_init,K,delta)
+
+        if self.is_inside_obstacle(q_init):
+            print("Initial point is inside an obstacle, regenerating...")
+            q_init = self.generate_valid_start()
+
+        self.q_init = q_init
+        self.G = self.create_RRT(self.q_init, K, delta)
+
+    # Checks if a point is inside any obstacle
+    def is_inside_obstacle(self, point):
+        for crc in self.circle_obstacles:
+            center = np.array(crc[:2])
+            radius = crc[2]
+            if np.linalg.norm(np.array(point) - center) < radius:
+                return True
+        return False
+
+    # Generates a valid starting point outside of obstacles
+    def generate_valid_start(self):
+        while True:
+            point = (np.random.uniform(low=0, high=self.D[0]),
+                     np.random.uniform(low=0, high=self.D[1]))
+            if not self.is_inside_obstacle(point):
+                return point
         
     def create_RRT(self,q_init,K,delta): 
         G = {} #key: position, value: edges. extend to the edges for nodes it is connected to
@@ -49,7 +71,7 @@ class RRT:
             for d in np.linspace(0, delta, num=100):
                 q_test = q_near + (d * dir_)
                 if not self.check_circle_collision(q_near, q_test):
-                    return tuple(q_near + ((d - 0.01) * dir_))  # step back a little to ensure collision-free
+                    return tuple(q_near + ((d - 0.1) * dir_))  # step back a little to ensure collision-free
 
             return q_near  # Return q_near if no collision-free point is found
 
@@ -65,7 +87,6 @@ class RRT:
                 min_dist_vertex = vertex 
         
         return min_dist_vertex 
-
 
     #generate random point in domain D
     def generate_random_point(self): 
