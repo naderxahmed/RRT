@@ -4,22 +4,27 @@ from numpy.linalg import norm
 
 class RRT: 
 
-    def __init__(self, q_init, K, delta, D, num_circle_obstacles): 
+    def __init__(self, q_init, q_goal, K, delta, D, num_circle_obstacles): 
         self.K = K 
         self.delta = delta
         self.D = D
         self.circle_obstacles = []
+        self.q_goal = q_goal
+        self.q_init = q_init    
 
         self.generate_circle_obstacles(num_circle_obstacles)
 
         if self.is_inside_obstacle(q_init):
             print("Initial point is inside an obstacle, regenerating...")
-            q_init = self.generate_valid_start()
+            self.q_init = self.generate_valid_pos()
 
-        self.q_init = q_init
-        self.G = self.create_RRT(self.q_init, K, delta)
+        if self.is_inside_obstacle(q_goal):
+            print("Goal point is inside an obstacle, regenerating...")
+            self.q_goal = self.generate_valid_pos()
 
-    # Checks if a point is inside any obstacle
+        self.G = self.create_RRT(K, delta)
+
+    # checks if a point is inside any obstacle
     def is_inside_obstacle(self, point):
         for crc in self.circle_obstacles:
             center = np.array(crc[:2])
@@ -28,27 +33,55 @@ class RRT:
                 return True
         return False
 
-    # Generates a valid starting point outside of obstacles
-    def generate_valid_start(self):
+    # generates a valid starting point outside of obstacles
+    def generate_valid_pos(self):
         while True:
             point = (np.random.uniform(low=0, high=self.D[0]),
                      np.random.uniform(low=0, high=self.D[1]))
             if not self.is_inside_obstacle(point):
                 return point
         
-    def create_RRT(self,q_init,K,delta): 
-        G = {} #key: position, value: edges. extend to the edges for nodes it is connected to
-        G[q_init]=[]
+    def create_RRT(self, K, delta, tolerance=1.0):  
+        G = {self.q_init: []}
+        self.path = []
+        goal_bias = 0.01
 
-        for _ in range(K): 
-            q_rand = self.generate_random_point() 
-            q_near = self.nearest_vertex(q_rand,G)
-            q_new = self.new_configuration(q_near,q_rand,delta)
+        for i in range(K):
+            if np.random.rand() < goal_bias:
+                q_rand = self.q_goal
+            else:
+                q_rand = self.generate_random_point()
 
-            G[q_new]=[] 
-            if q_new not in G[q_near] and self.check_circle_collision(q_near,q_new):
+            q_near = self.nearest_vertex(q_rand, G)
+            q_new = self.new_configuration(q_near, q_rand, delta)
+
+            if q_new not in G[q_near] and self.check_circle_collision(q_near, q_new):
                 G[q_near].append(q_new)
+                G[q_new] = []
+
+                if np.linalg.norm(np.array(q_new) - np.array(self.q_goal)) <= tolerance:
+                    G[q_new].append(self.q_goal)
+                    G[self.q_goal] = []
+                    self.path = self.find_path(G, self.q_goal)
+                    if self.path:  
+                        print("Path found, exiting...")
+                        break
+                    if i == K - 1:
+                        print("No path found, exiting...")
+
         return G
+
+
+    def find_path(self, G, goal):
+        path = [goal]
+        while path[-1] != self.q_init:
+            current = path[-1]
+            for parent in G:
+                if current in G[parent]:
+                    path.append(parent)
+                    break
+        return path[::-1]  
+
         
     #compute eucliean dist bw p1, p2
     def compute_distance(self,p1,p2): 
