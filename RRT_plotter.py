@@ -16,7 +16,6 @@ class Plotter:
         self.ax.set_xlim(0,self.rrt.D[0])
         self.ax.set_ylim(0,self.rrt.D[1])
 
-
         ratio = 1.0
         xleft, xright = self.ax.get_xlim()
         ybottom, ytop = self.ax.get_ylim()
@@ -26,7 +25,7 @@ class Plotter:
 
     def plot_vertices(self): 
         for v in self.rrt.G: 
-            plt.plot(v[0],v[1],'bo')
+            plt.plot(v[0], v[1], 'b.', markersize=5)  
     
     def plot_edges(self):
         segs = [] 
