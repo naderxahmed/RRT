@@ -1,19 +1,33 @@
-import matplotlib.pyplot as plt 
 import numpy as np 
 from numpy.linalg import norm
+import matplotlib.pyplot as plt
+import imageio
 
 class RRT: 
 
-    def __init__(self, q_init, q_goal, K, delta, D, num_circle_obstacles): 
-        self.K = K 
+    def __init__(self, q_init, q_goal, K, delta, D, num_circle_obstacles, image_path=None):
+        self.K = K
         self.delta = delta
         self.D = D
         self.circle_obstacles = []
         self.q_goal = q_goal
-        self.q_init = q_init    
+        self.q_init = q_init
 
+        # Load and process the image if provided
+        if image_path:
+            image = imageio.imread(image_path)
+            if len(image.shape) == 3:  # Check if the image is RGB
+                image = np.mean(image, axis=2)  # Convert to grayscale
+            self.image = (image < 128).astype(int)  # Convert to binary (0 or 1)
+        else:
+            self.image = None
+
+        self.image = np.fliplr(self.image)  # Flip the image left to right
+
+        # Generate circular obstacles if specified
         self.generate_circle_obstacles(num_circle_obstacles)
 
+        # Ensure starting and goal points are valid
         if self.is_inside_obstacle(q_init):
             print("Initial point is inside an obstacle, regenerating...")
             self.q_init = self.generate_valid_pos()
@@ -22,6 +36,7 @@ class RRT:
             print("Goal point is inside an obstacle, regenerating...")
             self.q_goal = self.generate_valid_pos()
 
+        # Initialize the graph for RRT
         self.G = self.create_RRT(K, delta)
 
     # checks if a point is inside any obstacle
@@ -44,7 +59,7 @@ class RRT:
     def create_RRT(self, K, delta, tolerance=1.0):  
         G = {self.q_init: []}
         self.path = []
-        goal_bias = 0.01
+        goal_bias = 0.15
 
         for i in range(K):
             if np.random.rand() < goal_bias:
@@ -55,7 +70,7 @@ class RRT:
             q_near = self.nearest_vertex(q_rand, G)
             q_new = self.new_configuration(q_near, q_rand, delta)
 
-            if q_new not in G[q_near] and self.check_circle_collision(q_near, q_new):
+            if q_new not in G[q_near] and self.check_collision(q_near, q_new):
                 G[q_near].append(q_new)
                 G[q_new] = []
 
@@ -98,13 +113,13 @@ class RRT:
         q_new = q_near + (delta * dir_)
 
         # check if path to q_new is collision-free
-        if self.check_circle_collision(q_near, q_new):
+        if self.check_collision(q_near, q_new) is True:
             return tuple(q_new)
         else:
             # if there's a collision, find a collision-free point along the line
             for d in np.linspace(0, delta, num=100):
                 q_test = q_near + (d * dir_)
-                if not self.check_circle_collision(q_near, q_test):
+                if not self.check_collision(q_near, q_test):
                     return tuple(q_near + ((d - 0.1) * dir_))  # step back a little to ensure collision-free
 
             return q_near  # Return q_near if no collision-free point is found
@@ -163,6 +178,45 @@ class RRT:
 
         return True  # no collision detected
 
+
+    # return true if no collision
+
+    def check_collision(self, q_near, q_new):
+        # Convert to integer coordinates for pixel indexing
+        x0, y0 = map(int, q_near)
+        x1, y1 = map(int, q_new)
+
+        dx = abs(x1 - x0)
+        dy = -abs(y1 - y0)
+        sx = 1 if x0 < x1 else -1
+        sy = 1 if y0 < y1 else -1
+        err = dx + dy  # error value e_xy
+
+        while True:
+            # Check collision at the current pixel
+            if 0 <= x0 < self.image.shape[1] and 0 <= y0 < self.image.shape[0]:
+                if self.image[y0, x0]:  # If obstacle pixel is detected
+                    return False  # Collision detected with image-based obstacle
+
+            # Check if the end of the line has been reached
+            if x0 == x1 and y0 == y1:
+                break
+
+            e2 = 2 * err
+            # Horizontal step
+            if e2 >= dy:
+                if x0 == x1:
+                    break
+                err += dy
+                x0 += sx
+            # Vertical step
+            if e2 <= dx:
+                if y0 == y1:
+                    break
+                err += dx
+                y0 += sy
+
+        return True  # No collision detected
 
 
 
