@@ -18,4 +18,4 @@ Here's how RRT works:
 
     Path Extraction: Once the goal is reached or the maximum number of iterations is reached, the algorithm traces back from the goal node to the start node, extracting the path that connects them.
 
-RRT is particularly useful in scenarios where the configuration space is complex or high-dimensional, and where traditional grid-based methods become inefficient. Its probabilistic nature allows it to efficiently explore the space without exhaustive searching, making it suitable for real-time applications.
+RRT is particularly useful in scenarios where the configuration space is complex or high-dimensional, and where traditional grid-based methods become inefficient. Its probabilistic nature allows it to efficiently explore the space without doing an exhaustive search on it.
